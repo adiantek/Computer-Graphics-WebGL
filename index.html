@@ -33,7 +33,7 @@
         function createHref(loc, name) {
             document.write(`<a href="?script=${loc}">${loc} - ${name}</a><br/>`);
         }
-        if (s !== null) {
+        if (s !== null && /zad_[0-9_a-z]*\.js/.test(s)) {
             const canvas = document.querySelector("#canvas");
             function resizeCanvas() {
                 canvas.width = window.innerWidth;
@@ -63,6 +63,7 @@
             createHref('zad_1_4.js', "kwadrat - ruch w górę / w dół");
             createHref('zad_1_5.js', "kwadrat - rotacja wokół środka");
             createHref('zad_1_6.js', "kwadrat - ruch i rotacja");
+            createHref('zad_2_1a.js', "box with colors in VAO and VBO");
         }
     </script>
 </body>
