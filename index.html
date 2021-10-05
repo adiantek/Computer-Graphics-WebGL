@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zadanka</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <canvas id="canvas"></canvas>
+    <script type="text/javascript" src="ShaderLoader.js"></script>
+    <script type="text/javascript" src="RenderUtils.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.6.1/gl-matrix.js"></script>
+    <script>
+        function getQueryVariable(variable) {
+            if (window.location.search === '') {
+                return null;
+            }
+            var query = window.location.search.substring(1);
+            var vars = query.split('&');
+            for (var i = 0; i < vars.length; i++) {
+                var pair = vars[i].split('=');
+                if (decodeURIComponent(pair[0]) == variable) {
+                    return decodeURIComponent(pair[1]);
+                }
+            }
+            return null;
+        }
+        const s = getQueryVariable('script');
+        function createHref(loc, name) {
+            document.write(`<a href="?script=${loc}">${loc} - ${name}</a><br/>`);
+        }
+        if (s !== null) {
+            const canvas = document.querySelector("#canvas");
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                if (window.gl) {
+                    let size = Math.min(canvas.width, canvas.height);
+                    // keep aspect ratio & center it
+                    window.gl.viewport((canvas.width - size) / 2, (canvas.height - size) / 2, size, size);
+                }
+            }
+            window.addEventListener('resize', resizeCanvas, false);
+
+            const sct = document.createElement('script');
+            sct.src = s;
+            sct.type = 'text/javascript';
+            document.write(sct.outerHTML);
+            document.addEventListener('DOMContentLoaded', async (ev) => {
+                await init();
+                resizeCanvas();
+            });
+        } else {
+            document.querySelector("#canvas").remove();
+            createHref('zad_1_1.js', "glClear");
+            createHref('zad_1_2.js', "trójkąt z trzech wierzchołków");
+            createHref('zad_1_3.js', "kwadrat - indeksowane wierzchołki");
+            createHref('zad_1_4.js', "kwadrat - ruch w górę / w dół");
+            createHref('zad_1_5.js', "kwadrat - rotacja wokół środka");
+            createHref('zad_1_6.js', "kwadrat - ruch i rotacja");
+        }
+    </script>
+</body>
+
+</html>
