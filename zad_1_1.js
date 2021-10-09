@@ -14,8 +14,8 @@ async function init() {
 }
 
 function renderScene() {
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.clearColor(0.0, 0.3, 0.3, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     requestAnimationFrame(renderScene);
 }
