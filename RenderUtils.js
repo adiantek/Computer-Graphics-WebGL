@@ -1,5 +1,5 @@
 function drawVertexArray(gl, vertexArray, numVertices, elementSize) {
-    if (!(gl instanceof WebGL2RenderingContext)) {
+    if (!(gl instanceof WebGL2RenderingContext) && !(gl instanceof WebGLRenderingContext)) {
         throw new Error(`invalid gl object - must be webgl2`);
     }
     const vbo = gl.createBuffer();
@@ -12,7 +12,7 @@ function drawVertexArray(gl, vertexArray, numVertices, elementSize) {
 }
 
 function drawVertexArrayIndexed(gl, vertexArray, indexArray, numVertices, elementSize) {
-    if (!(gl instanceof WebGL2RenderingContext)) {
+    if (!(gl instanceof WebGL2RenderingContext) && !(gl instanceof WebGLRenderingContext)) {
         throw new Error(`invalid gl object - must be webgl2`);
     }
     if (!(indexArray instanceof Uint32Array)) {

@@ -2,7 +2,7 @@ async function readShader(filename) {
     return await fetch(`shaders/${filename}`).then((resp) => resp.text());
 }
 function createShader(gl, shaderType, source, shaderName) {
-    if (!(gl instanceof WebGL2RenderingContext)) {
+    if (!(gl instanceof WebGL2RenderingContext) && !(gl instanceof WebGLRenderingContext)) {
         throw new Error(`invalid gl object`);
     }
     const shader = gl.createShader(shaderType);
@@ -18,7 +18,7 @@ function createShader(gl, shaderType, source, shaderName) {
     return shader;
 }
 async function createProgram(gl, vertexShaderFileName, fragmentShaderFileName) {
-    if (!(gl instanceof WebGL2RenderingContext)) {
+    if (!(gl instanceof WebGL2RenderingContext) && !(gl instanceof WebGLRenderingContext)) {
         throw new Error(`invalid gl object`);
     }
 
