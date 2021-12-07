@@ -40,28 +40,37 @@ async function init() {
         d1 /= 2.0;
         d2 *= 2.0;
     }
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.DST_ALPHA);
+    {
+        const vertexArray = new Float32Array([
+            -1, -1, 0, 1,
+            1, -1, 0, 1,
+            -1, 1, 0, 1,
+            1, 1, 0, 1
+        ]);
+        const indexArray = new Uint32Array([
+            0, 1, 2, 1, 2, 3
+        ]);
+        const vbo = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+        gl.bufferData(gl.ARRAY_BUFFER, vertexArray, gl.STATIC_DRAW);
+        gl.vertexAttribPointer(0, 4, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(0);
+
+        const indexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indexArray, gl.STATIC_DRAW);
+    }
     requestAnimationFrame(renderScene);
 }
 
 function renderScene() {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.DST_ALPHA);
     for (let i = 0; i < programs.length; i++) {
         gl.useProgram(programs[i]);
-        let scale = 1 ;
-        const v = new Float32Array([
-            -scale, -scale, 0, 1,
-            scale, -scale, 0, 1,
-            -scale, scale, 0, 1,
-            scale, scale, 0, 1,
-            
-        ]);
-        const index = new Uint32Array([
-            0, 1, 2, 1, 2, 3
-        ]);
-        drawVertexArrayIndexed(gl, v, index, 6, 4);
+        gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, 0);
     }
     requestAnimationFrame(renderScene);
 }
