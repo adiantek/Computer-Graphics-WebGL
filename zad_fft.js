@@ -12,9 +12,9 @@ window.gl = gl;
 let bitreverse;
 let post;
 let bitreverseHorizontally;
-let bitreverseScale;
 let fft;
 let fftS;
+let fftInverseFFT;
 let fftHorizontally;
 let framebufferName = [];
 let renderedTexture = [];
@@ -34,13 +34,13 @@ async function init() {
     gl.uniform1i(gl.getUniformLocation(post, "tex"), 0);
     gl.useProgram(bitreverse);
     bitreverseHorizontally = gl.getUniformLocation(bitreverse, "horizontally");
-    bitreverseScale = gl.getUniformLocation(bitreverse, "scale");
     gl.uniform1i(gl.getUniformLocation(bitreverse, "tex"), 0);
     gl.uniform1i(gl.getUniformLocation(bitreverse, "size"), size);
     gl.uniform1i(gl.getUniformLocation(bitreverse, "bits"), Math.clz32(size - 1));
     gl.useProgram(fft);
     fftS = gl.getUniformLocation(fft, "s");
     fftHorizontally = gl.getUniformLocation(fft, "horizontally");
+    fftInverseFFT = gl.getUniformLocation(fft, "inverseFFT");
     gl.uniform1i(gl.getUniformLocation(fft, "tex"), 0);
     gl.uniform1i(gl.getUniformLocation(fft, "size"), size);
 
@@ -99,11 +99,7 @@ function setupVideo() {
     video.loop = true;
     video.addEventListener('playing', function () {
         playing = true;
-        videoWidth = this.videoWidth;
-        videoHeight = this.videoHeight;
         gl.useProgram(bitreverse);
-        console.log(this.videoHeight);
-        gl.uniform2f(bitreverseScale, 512.0 / this.videoWidth, 512.0 / this.videoHeight);
         checkReady();
     }, true);
     video.addEventListener('timeupdate', function () {
@@ -117,7 +113,7 @@ function setupVideo() {
                 video.srcObject = stream;
             })
             .catch(function (err0r) {
-                console.log("Something went wrong!");
+                console.log(`Something went wrong: ${err0r}!`);
             });
     }
     video.play();
@@ -130,8 +126,25 @@ function setupVideo() {
 }
 
 let video = setupVideo();
-
-
+function runBitreverse(n) {
+    swapBuffers();
+    gl.useProgram(bitreverse);
+    gl.uniform1i(bitreverseHorizontally, n);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+}
+function invokeFFT(bits, inverse, horizontally, debug) {
+    gl.useProgram(fft);
+    gl.uniform1i(fftInverseFFT, inverse);
+    gl.uniform1i(fftHorizontally, horizontally);
+    for (let s = 1; s <= bits; s++) {
+        swapBuffers();
+        gl.uniform1i(fftS, s);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    }
+    // gl.readPixels(0, 0, size, size, gl.RG, gl.FLOAT, u);
+    // console.log(debug);
+    // console.log(u);
+}
 function renderScene() {
     if (!copyVideo) {
         requestAnimationFrame(renderScene);
@@ -142,47 +155,51 @@ function renderScene() {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     gl.bindTexture(gl.TEXTURE_2D, cameraTex);
+    // {
+    //     let dane = new Float32Array(32);
+    //     for (let i = 0; i < 32; i++) {
+    //         if (i % 2 == 0) {
+    //             dane[i] = i / 2;
+    //         } else {
+    //             dane[i] = 0;
+    //         }
+    //     }
+    //     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RG32F, 4, 4, 0, gl.RG, gl.FLOAT, dane);
+    // }
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
-    gl.useProgram(bitreverse);
-    gl.uniform1i(bitreverseHorizontally, 0);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-    gl.useProgram(fft);
-    gl.uniform1i(fftHorizontally, 0);
     let bits = 32 - Math.clz32(size - 1);
-    for (let s = 1; s <= bits; s++) {
-        swapBuffers();
-        gl.uniform1i(fftS, s);
+
+    {
+        gl.useProgram(bitreverse);
+        gl.uniform1i(bitreverseHorizontally, -1);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
-
-    gl.readPixels(0, 0, size, size, gl.RG, gl.FLOAT, u);
-    swapBuffers();
-
-    gl.useProgram(bitreverse);
-    gl.uniform1i(bitreverseHorizontally, 1);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-    gl.useProgram(fft);
-    gl.uniform1i(fftHorizontally, 1);
-    for (let s = 1; s <= bits; s++) {
+    runBitreverse(0);
+    invokeFFT(bits, 0, 0, "after FFT vert");
+    runBitreverse(1);
+    invokeFFT(bits, 0, 1, "after FFT horizontally");
+    {
+        // draw
         swapBuffers();
-        gl.uniform1i(fftS, s);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.useProgram(post);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        swapBuffers();
     }
-    gl.readPixels(0, 0, size, size, gl.RG, gl.FLOAT, u);
-
-    swapBuffers();
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    gl.useProgram(post);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-    gl.viewport(0, 512, 512, 512);
-    gl.bindTexture(gl.TEXTURE_2D, cameraTex);
-    gl.useProgram(bitreverse);
-    gl.uniform1i(bitreverseHorizontally, 2);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
+    runBitreverse(2);
+    invokeFFT(bits, 1, 1, "after iFFT horizontally");
+    runBitreverse(3);
+    invokeFFT(bits, 1, 0, "after iFFT vert");
+    {
+        swapBuffers();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.viewport(0, 512, 512, 512);
+        gl.useProgram(bitreverse);
+        gl.uniform1i(bitreverseHorizontally, 4);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        // gl.readPixels(0, 0, size, size, gl.RG, gl.FLOAT, u);
+        // console.log("after ifft vert");
+        // console.log(u);
+    }
     requestAnimationFrame(renderScene);
-
 }
