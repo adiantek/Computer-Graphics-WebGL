@@ -187,19 +187,36 @@ function renderScene() {
         swapBuffers();
     }
     runBitreverse(2);
+    {
+        gl.readPixels(0, 0, size, size, gl.RG, gl.FLOAT, u);
+        let a = 0;
+        for (let i = 0; i < u.length; i++) {
+            if (u[i] == 0.0) {
+                a++;
+            }
+        }
+        console.log(`${Math.round(a * 100.0 / u.length * 10.0) / 10.0}%`);
+    }
     invokeFFT(bits, 1, 1, "after iFFT horizontally");
     runBitreverse(3);
     invokeFFT(bits, 1, 0, "after iFFT vert");
     {
         swapBuffers();
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        gl.viewport(0, 512, 512, 512);
+        gl.viewport(512, 512, 512, 512);
         gl.useProgram(bitreverse);
         gl.uniform1i(bitreverseHorizontally, 4);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         // gl.readPixels(0, 0, size, size, gl.RG, gl.FLOAT, u);
         // console.log("after ifft vert");
         // console.log(u);
+    }
+    {
+        gl.bindTexture(gl.TEXTURE_2D, cameraTex);
+        gl.viewport(0, 512, 512, 512);
+        gl.useProgram(bitreverse);
+        gl.uniform1i(bitreverseHorizontally, -1);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
     requestAnimationFrame(renderScene);
 }
