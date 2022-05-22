@@ -15,7 +15,7 @@ void main()
     texPos = mod(texPos, 1.0);
 
     vec2 val = vec2(texture(tex, texPos));
-    float mag = sqrt(val.x * val.x + val.y * val.y);
-    mag = log(1.0 + mag) / 10.0;
+    float mag = sqrt(val.x * val.x + val.y * val.y) * 22.0;
+    mag = log(1.0 + mag);
     FragColor = vec4(mag, mag, mag, 1.0);
 }
