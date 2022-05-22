@@ -12,10 +12,10 @@ uniform int size;
 
 // -1 - scale input video
 // 0 - inverse Y, mix RGB, bitreverse X
-// 1 - bitreverse Y
-// 2 - bitreverse Y and swap RE/IM
-// 3 - bitreverse X and scale
-// 4 - scale
+// 1 - bitreverse Y and scale
+// 2 - bitreverse Y, scale and swap RE/IM
+// 3 - bitreverse X
+// 4 - swap RE/IM
 uniform int horizontally;
 
 out vec4 FragColor;
@@ -51,7 +51,7 @@ void main()
         FragColor = vec4(FragColor.r, 0.0, 0.0, 1.0);
     } else if (horizontally == 2) {
         FragColor = vec4(FragColor.g, FragColor.r, 0.0, 1.0);
-        float b = 64.0;
+        float b = 0.1;
         if (FragColor.g < b && FragColor.g > -b) {
             FragColor.g = 0.0;
         }
@@ -60,7 +60,7 @@ void main()
         }
         FragColor.r /= float(size);
         FragColor.g /= float(size);
-    } else if (horizontally == 3) {
+    } else if (horizontally == 1) {
         FragColor.r /= float(size);
         FragColor.g /= float(size);
     }
@@ -72,7 +72,6 @@ void main()
         FragColor = texture(tex, texPos);
         float mixed = (FragColor.r + FragColor.g + FragColor.b) / 3.0;
         FragColor = texelFetch(tex2, pos, 0);
-        FragColor.g /= float(size);
         float diff = abs(mixed - FragColor.g);
         FragColor = vec4(diff, diff, diff, 1.0);
     }
