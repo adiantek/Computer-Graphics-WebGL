@@ -6,6 +6,7 @@ precision highp int;
 in vec4 fragPos;
 
 uniform sampler2D tex;
+uniform sampler2D tex2;
 uniform int bits;
 uniform int size;
 
@@ -62,5 +63,13 @@ void main()
     }
     if (horizontally == 4) {
         FragColor = vec4(FragColor.g, FragColor.g, FragColor.g, 1.0);
+    }
+    if (horizontally == 5) {
+        FragColor = texture(tex, texPos);
+        float mixed = (FragColor.r + FragColor.g + FragColor.b) / 3.0;
+        FragColor = texelFetch(tex2, pos, 0);
+        FragColor.g /= float(size);
+        float diff = abs(mixed - FragColor.g);
+        FragColor = vec4(diff, diff, diff, 1.0);
     }
 }

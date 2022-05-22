@@ -35,6 +35,7 @@ async function init() {
     gl.useProgram(bitreverse);
     bitreverseHorizontally = gl.getUniformLocation(bitreverse, "horizontally");
     gl.uniform1i(gl.getUniformLocation(bitreverse, "tex"), 0);
+    gl.uniform1i(gl.getUniformLocation(bitreverse, "tex2"), 1);
     gl.uniform1i(gl.getUniformLocation(bitreverse, "size"), size);
     gl.uniform1i(gl.getUniformLocation(bitreverse, "bits"), Math.clz32(size - 1));
     gl.useProgram(fft);
@@ -150,6 +151,7 @@ function renderScene() {
         requestAnimationFrame(renderScene);
         return;
     }
+    gl.activeTexture(gl.TEXTURE0);
     swapBuffers();
     gl.clearColor(0.0, 0.0, 0.0, 0.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -217,6 +219,15 @@ function renderScene() {
         gl.useProgram(bitreverse);
         gl.uniform1i(bitreverseHorizontally, -1);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    }
+    {
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, renderedTexture[1]);
+        gl.viewport(512, 0, 512, 512);
+        gl.useProgram(bitreverse);
+        gl.uniform1i(bitreverseHorizontally, 5);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        gl.bindTexture(gl.TEXTURE_2D, null);
     }
     requestAnimationFrame(renderScene);
 }
