@@ -34,6 +34,7 @@ void main()
 {
     vec2 texPos = (vec2(fragPos) + 1.0) * 0.5;
     if (horizontally == -1) {
+        texPos.y = 1.0 - texPos.y;
         FragColor = texture(tex, texPos);
         float mixed = (FragColor.r + FragColor.g + FragColor.b) / 3.0;
         FragColor = vec4(mixed, mixed, mixed, 1.0);
@@ -57,7 +58,9 @@ void main()
         if (FragColor.r < b && FragColor.r > -b) {
             FragColor.r = 0.0;
         }
-    } else if (horizontally == 4 || horizontally == 3) {
+        FragColor.r /= float(size);
+        FragColor.g /= float(size);
+    } else if (horizontally == 3) {
         FragColor.r /= float(size);
         FragColor.g /= float(size);
     }
@@ -65,6 +68,7 @@ void main()
         FragColor = vec4(FragColor.g, FragColor.g, FragColor.g, 1.0);
     }
     if (horizontally == 5) {
+        texPos.y = 1.0 - texPos.y;
         FragColor = texture(tex, texPos);
         float mixed = (FragColor.r + FragColor.g + FragColor.b) / 3.0;
         FragColor = texelFetch(tex2, pos, 0);
